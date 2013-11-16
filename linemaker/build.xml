@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+
+<project name="linemaker" default="build" basedir=".">
+
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="temp.dir" value="${basedir}/build" />
+	<property name="distr.dir" value="${basedir}/dist" />
+
+	<buildnumber file="build.num" />
+
+
+	<property file="linemaker.properties" />
+
+	<target name="prepare">
+		<delete dir="${temp.dir}" />
+		<mkdir dir="${temp.dir}" />
+		<delete dir="${distr.dir}" />
+		<mkdir dir="${distr.dir}" />
+		<copy todir="${temp.dir}">
+			<fileset dir="${src.dir}" includes="**/*.png" />
+		</copy>
+
+	</target>
+
+	<target name="compile" depends="prepare" description="Compiles all Java classes">
+		<javac srcdir="${src.dir}" destdir="${temp.dir}" debug="off" optimize="off" deprecation="off" encoding="utf-8">
+		</javac>
+	</target>
+
+	<target name="jar" depends="compile">
+		<tstamp>
+			<format property="TODAY" pattern="dd-MM-yyyy HH:mm:ss" />
+		</tstamp>
+		<jar destfile="${distr.dir}/linemaker.jar">
+			<fileset dir="${temp.dir}">
+				<include name="**/*" />
+			</fileset>
+			<manifest>
+				<attribute name="Main-Class" value="trolsoft.tools.linemaker.LineMaker" />
+				<attribute name="Class-Path" value="." />
+				<attribute name="Implementation-Version" value="${version.num}.${build.number}" />
+				<attribute name="Built-Date" value="${TODAY}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="exe" depends="obfuscate">
+		<taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" classpath="${launch4j.dir}/launch4j.jar
+		    :${launch4j.dir}/lib/xstream.jar" />
+		<launch4j configFile="./l4j.xml" />
+	</target>
+
+	<taskdef resource="proguard/ant/task.properties" classpath="${proguard.dir}/lib/proguard.jar" /> 
+	
+	<target name="obfuscate" depends="jar">
+
+		
+
+
+		<proguard>
+			-libraryjars ${java.home}/lib/rt.jar
+			-injars      ${distr.dir}/linemaker.jar
+			-outjars     ${distr.dir}/linemaker_obfuscated.jar
+
+			-keepclasseswithmembers public class * {
+				public static void main(java.lang.String[]);
+			}
+		</proguard>
+
+		<copy file="${distr.dir}/linemaker.jar" tofile="${distr.dir}/linemaker_debug.jar" />
+		<delete file="${distr.dir}/linemaker.jar">
+		</delete>
+		<move file="${distr.dir}/linemaker_obfuscated.jar" tofile="${distr.dir}/linemaker.jar" />
+
+	</target>
+
+	<target name="clean" description="clean up">
+		<delete dir="${temp.dir1}" />
+	</target>
+
+
+
+	<target name="build" depends="exe">
+		<delete dir="${temp.dir}" />
+	</target>
+
+</project>

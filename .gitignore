@@ -1,0 +1,8 @@
+syntax: regexp
+
+syntax: glob
+.svn
+*.class
+.DS_Store
+linemaker/bin/*
+fontc/bin/*
